@@ -26,7 +26,7 @@ def main(
     load_8bit: bool = False,
     base_model: str = "decapoda-research/llama-7b-hf",
     lora_weights: str = "tloen/alpaca-lora-7b",
-    lora_other: str = "greate/lora-llama-7b",
+    lora_other: str = "",
     prompt_template: str = "",  # The prompt template to use, will default to alpaca.
     server_name: str = "0.0.0.0",  # Allows to listen on all interfaces by providing '0.
     share_gradio: bool = True,
@@ -50,11 +50,12 @@ def main(
             lora_weights,
             torch_dtype=torch.float16,
         )
-        model = PeftModel.from_pretrained(
-            model,
-            lora_other,
-            torch_dtype=torch.float16,
-        )
+        if lora_other != "":
+            model = PeftModel.from_pretrained(
+                model,
+                lora_other,
+                torch_dtype=torch.float16,
+            )
     elif device == "mps":
         model = LlamaForCausalLM.from_pretrained(
             base_model,
@@ -67,12 +68,13 @@ def main(
             device_map={"": device},
             torch_dtype=torch.float16,
         )
-        model = PeftModel.from_pretrained(
-            model,
-            lora_other,
-            device_map={"": device},
-            torch_dtype=torch.float16,
-        )
+        if lora_other != "":
+            model = PeftModel.from_pretrained(
+                model,
+                lora_other,
+                device_map={"": device},
+                torch_dtype=torch.float16,
+            )
     else:
         model = LlamaForCausalLM.from_pretrained(
             base_model, device_map={"": device}, low_cpu_mem_usage=True
@@ -82,11 +84,12 @@ def main(
             lora_weights,
             device_map={"": device},
         )
-        model = PeftModel.from_pretrained(
-            model,
-            lora_other,
-            device_map={"": device},
-        )
+        if lora_other != "":
+            model = PeftModel.from_pretrained(
+                model,
+                lora_other,
+                device_map={"": device},
+            )
 
     # unwind broken decapoda-research config
     model.config.pad_token_id = tokenizer.pad_token_id = 0  # unk
